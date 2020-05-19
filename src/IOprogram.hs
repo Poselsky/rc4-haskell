@@ -81,6 +81,8 @@ shouldContinue:: IO(Bool)
 shouldContinue = do 
     input <- putStrLn "Do you wish to continue? [y, N]" 
         >>= (\_ -> do
-                yesNo <- getLine
-                if (toUpper $ head yesNo) == 'Y' then return(True) else return(False))
+                yesNo <- getLine >>= (\x -> if x == "" then return(Nothing) else return(Just x))
+                case yesNo of 
+                    Nothing -> return(False)
+                    Just x  -> if (toUpper $ head x) == 'Y' then return(True) else return(False))
     return(input)
