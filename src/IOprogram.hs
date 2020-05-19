@@ -73,7 +73,7 @@ encryptFile main = do
     return()
 
 exitProgram:: MainProgram -> IO()
-exitProgram _ = do
+exitProgram main = do
     return()
 
 
