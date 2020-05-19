@@ -4,13 +4,16 @@ import Data.Char (chr, ord, intToDigit, toUpper)
 import Data.Bits (xor)
 import Text.Read
 import Data.Maybe
+import Data.Text (splitOn, pack, unpack)
 import Numeric
+import Control.Exception
+import Data.Typeable (typeOf)
 
 
 main :: IO()
 main = do
-    let mainFunctions = [encryptIO, decryptIO, exitProgram]
-    input <- mapM_ putStrLn ["Please choose an option (1. Default):", "1. Encrypt message", "2. Decrypt message", "3. Exit application"] 
+    let mainFunctions = [encryptIO, decryptIO, encryptFile, exitProgram]
+    input <- mapM_ putStrLn ["Please choose an option (1. Default):", "1. Encrypt message", "2. Decrypt message", "3. Encrypt file" ,"4. Exit application"] 
             >>= return(getLine)
             >>= (\x -> return (readMaybe x :: Maybe Int))
             >>= (\x -> case x of    Just x    -> if x <= length mainFunctions && x > 0 then return(Just x) else return(Nothing)
@@ -53,6 +56,31 @@ decryptIO = do
     
     shouldContinueProgram <- shouldContinue
     if shouldContinueProgram then main else return()
+
+encryptFile:: IO()
+encryptFile = do
+    fileContentsInfo <- putStrLn "Write path to your file."
+        >>= return(getLine)
+        >>= (\path -> do
+                let splitOnDot = splitOn (pack ".") $ pack path
+                let splitBySlash = splitOn (pack "/") $ head splitOnDot
+                let fileNameExtension = last splitOnDot
+                let fileName = last splitBySlash
+                let folder = foldr (\x acc -> x++"/"++acc) "" $ map unpack $ init splitBySlash
+                return(path ,unpack fileName, folder,unpack fileNameExtension))
+        >>= (\(path, fileName, folder, fileNameExtension) -> do
+                fileContents <- (try $ readFile path)  :: IO (Either SomeException String)
+                case fileContents of 
+                    Right cont -> return(Just (cont, fileName, folder,fileNameExtension)) 
+                    Left ex    -> return(Nothing))
+                    
+    case fileContentsInfo of
+        Nothing   -> putStrLn "File does not exist."
+        Just (cont, fileName, folder, fileNameExtension) -> do
+            putStrLn "File loaded succesfully."
+            encryptionKey <- putStrLn "Write your encryption key: " >>= return(getLine)
+            writeFile (folder ++ "/encrypted_" ++ fileName ++ "." ++ fileNameExtension) $ encryptRC4 cont encryptionKey
+    return()
 
 exitProgram:: IO()
 exitProgram = do
