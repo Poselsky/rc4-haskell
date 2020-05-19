@@ -3,9 +3,7 @@ module Main where
 import Data.Maybe
 import Text.Read (readMaybe)
 
-import Helpers
 import IOProgram
-import RC4
 
 
 main :: IO()
